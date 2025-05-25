@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contacts</title>
+</head>
+<body>
+  <div class="container">
+    <div class="feedback" id="feedbackForm">
+      <p class="feedback__header header-text">Напишите нам</p>
+      <p class="feedback__call">или позвоните по номеру <a href="tel:88007071000">8 800 707 1000</a></p>
+      <div class="feedback__content">
+        <form class="feedback__form" id="feedbackform" method="post" action="/data/feedback.json" novalidate="">
+          <div class="feedback__form-line">
+            <div class="feedback__form-item">
+              <div class="select">
+                <select class="select__select" name="subject" required="" data-value-missing="Пожалуйста, выберите тему обращения">
+                  <option value="" disabled="disabled" selected="selected" hidden="">Тема обращения</option>
+                  <option value="1">Заказать услугу</option>
+                  <option value="2">Работа у нас</option>
+                  <option value="3">Заявка на франшизу</option>
+                </select>
+              </div>
+              <p class="feedback__inline-error hidden" aria-live="polite"></p>
+            </div>
+            <div class="feedback__form-item input-line">
+              <input class="input-line__input" type="text" name="first-name" placeholder="Имя" data-value-missing="Пожалуйста, заполните поле" />
+              <p class="feedback__inline-error hidden" aria-live="polite"></p>
+            </div>
+          </div>
+          <div class="feedback__form-line">
+            <div class="feedback__form-item input-line">
+              <input class="input-line__input js-tel-mask" type="tel" name="phone" placeholder="Номер телефона" data-value-missing="Пожалуйста, заполните поле" data-value-invalid="Введите корректный номер" />
+              <p class="feedback__inline-error hidden" aria-live="polite"></p>
+            </div>
+            <div class="feedback__form-item input-line">
+              <input class="input-line__input" type="email" name="email" placeholder="Email" data-value-missing="Пожалуйста, заполните поле" data-value-invalid="Введите корректный email" />
+              <p class="feedback__inline-error hidden" aria-live="polite"></p>
+            </div>
+          </div>
+          <div class="feedback__form-item input-line">
+            <textarea class="input-line__input input-line__input--textarea" name="msg" placeholder="Сообщение" data-value-missing="Пожалуйста, заполните поле"></textarea>
+            <p class="feedback__inline-error hidden" aria-live="polite"></p>
+          </div>
+          <div class="feedback__agree-line">
+            <label class="check">
+              <input class="check__input js-agree-check" type="checkbox" name="agree" required="" />
+              <span class="check__label">
+                <a style="font-size: 1em;" class="feedback__link" href="/privacy.html" target="_blank" rel="noopener">Я согласен с политикой конфиденциальности и использования запрашиваемых данных</a>
+              </span>
+            </label>
+          </div>
+          <div class="feedback__agree-line">
+            <label class="check">
+              <input class="check__input js-agree-check" type="checkbox" name="agree3" required="" />
+              <span class="check__label">
+                <a style="font-size: 1em;" class="feedback__link" href="/consent.html" target="_blank" rel="noopener">Согласен на обработку персональных данных</a>
+              </span>
+            </label>
+          </div>
+          <div class="feedback__agree-line">
+            <label class="check">
+              <input class="check__input" type="checkbox" name="agree2" checked="checked" />
+              <span class="check__label">Согласен на рекламные рассылки</span>
+            </label>
+          </div>
+          <!-- Добавляем кнопку отправки -->
+          <button type="submit" class="feedback__submit">Отправить</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

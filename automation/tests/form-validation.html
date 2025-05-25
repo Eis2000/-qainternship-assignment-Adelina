@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Проверка email</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .form-box {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="email"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .error {
+            color: red;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+        .success {
+            color: green;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-box">
+        <h2>Проверьте ваш email</h2>
+        <div class="input-group">
+            <label for="user-email">Ваш email:</label>
+            <input type="email" id="user-email" placeholder="например: ivan@mail.ru">
+            <div id="error-text" class="error">Неправильный email!</div>
+            <div id="success-text" class="success">Email правильный! Спасибо.</div>
+        </div>
+        <button id="check-btn">Проверить</button>
+    </div>
+
+    <script>
+       
+        const emailInput = document.getElementById('user-email');
+        const checkButton = document.getElementById('check-btn');
+        const errorText = document.getElementById('error-text');
+        const successText = document.getElementById('success-text');
+
+   
+        function checkEmail(email) {
+            // Простая проверка на @ и точку после @
+            if (email.indexOf('@') === -1) return false;
+            if (email.indexOf('.', email.indexOf('@')) === -1) return false;
+            return true;
+        }
+
+        // Когда нажимаем кнопку "Проверить"
+        checkButton.addEventListener('click', function() {
+            // Получаем email из поля ввода и убираем лишние пробелы
+            const email = emailInput.value.trim();
+            
+            
+            errorText.style.display = 'none';
+            successText.style.display = 'none';
+
+            // Проверяем email
+            if (email === '') {
+                errorText.textContent = 'Введите email!';
+                errorText.style.display = 'block';
+            } else if (!checkEmail(email)) {
+                errorText.textContent = 'Неправильный email! Пример: ivan@mail.ru';
+                errorText.style.display = 'block';
+            } else {
+                successText.style.display = 'block';
+            }
+        });
+
+        // Дополнительно: проверка при вводе
+        emailInput.addEventListener('input', function() {
+            const email = emailInput.value.trim();
+            if (email === '') {
+                errorText.style.display = 'none';
+                successText.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

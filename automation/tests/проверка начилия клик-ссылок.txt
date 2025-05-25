@@ -1,0 +1,226 @@
+// Конфигурация
+const config = {
+  checkExternalLinks: true,  // Проверять внешние ссылки (может быть медленно)
+  skipFragments: true,      // Пропускать якорные ссылки (#section)
+  highlightOnPage: true,    // Подсвечивать ссылки на странице
+  requestTimeout: 5000,     // Таймаут запроса в мс
+};
+
+// Функция для поиска всех кликабельных ссылок
+function findLinks() {
+  console.log('%c=== Поиск ссылок ===', 'color: #2196F3; font-weight: bold');
+  
+  const allLinks = Array.from(document.querySelectorAll('a[href]'));
+  
+  const links = allLinks.filter(link => {
+    // Проверяем видимость элемента
+    const style = window.getComputedStyle(link);
+    const isVisible = (
+      style.display !== 'none' &&
+      style.visibility !== 'hidden' &&
+      style.opacity !== '0' &&
+      link.offsetWidth > 0 &&
+      link.offsetHeight > 0
+    );
+    
+    // Пропускаем якорные ссылки, если включено
+    const isFragment = config.skipFragments && link.href.split('#')[0] === window.location.href.split('#')[0];
+    
+    return isVisible && !isFragment;
+  });
+
+  console.log(`Найдено ссылок: ${allLinks.length} | Кликабельных: ${links.length}`);
+  return links;
+}
+
+// Функция для проверки одной ссылки
+async function checkLink(link) {
+  const url = link.href;
+  const isExternal = new URL(url).hostname !== window.location.hostname;
+  
+  // Для якорных ссылок просто возвращаем успех
+  if (url.includes('#')) {
+    return { url, status: 200, ok: true, isExternal, error: null };
+  }
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), config.requestTimeout);
+    
+    const response = await fetch(url, {
+      method: 'HEAD',
+      signal: controller.signal,
+      cache: 'no-cache'
+    });
+    
+    clearTimeout(timeoutId);
+    
+    return {
+      url,
+      status: response.status,
+      ok: response.ok,
+      isExternal,
+      error: null
+    };
+  } catch (error) {
+    return {
+      url,
+      status: 0,
+      ok: false,
+      isExternal,
+      error: error.name === 'AbortError' ? 'Timeout' : error.message
+    };
+  }
+}
+
+// Функция для вывода результатов
+function showResults(results) {
+  console.log('%c=== Результаты проверки ===', 'color: #2196F3; font-weight: bold');
+  
+  const stats = {
+    total: results.length,
+    success: 0,
+    errors: 0,
+    timeouts: 0,
+    external: 0
+  };
+  
+  results.forEach(res => {
+    if (res.ok) stats.success++;
+    else stats.errors++;
+    if (res.error === 'Timeout') stats.timeouts++;
+    if (res.isExternal) stats.external++;
+  });
+  
+  console.log(`Проверено: ${stats.total} | Успешно: ${stats.success} | Ошибки: ${stats.errors} | Таймауты: ${stats.timeouts} | Внешние: ${stats.external}`);
+  
+  // Группируем ошибки по типу
+  const errorGroups = results
+    .filter(r => !r.ok)
+    .reduce((groups, item) => {
+      const key = item.error || `HTTP ${item.status}`;
+      groups[key] = (groups[key] || 0) + 1;
+      return groups;
+    }, {});
+  
+  console.log('\nТипы ошибок:');
+  Object.entries(errorGroups).forEach(([error, count]) => {
+    console.log(`- ${error}: ${count} ссылок`);
+  });
+  
+  // Выводим таблицу с проблемными ссылками
+  const problemLinks = results.filter(r => !r.ok);
+  if (problemLinks.length > 0) {
+    console.log('\n%cПроблемные ссылки:', 'color: #FF5722; font-weight: bold');
+    console.table(problemLinks.map(link => ({
+      'URL': link.url,
+      'Статус': link.error || link.status,
+      'Тип': link.isExternal ? 'Внешняя' : 'Внутренняя',
+      'Элемент': link.element
+    })));
+  }
+}
+
+// Подсветка ссылок на странице
+function highlightLinks(results) {
+  if (!config.highlightOnPage) return;
+  
+  // Добавляем стили для подсветки
+  const style = document.createElement('style');
+  style.textContent = `
+    .link-checker-highlight {
+      position: relative;
+      z-index: 9999;
+    }
+    .link-checker-ok {
+      outline: 2px solid #4CAF50 !important;
+    }
+    .link-checker-error {
+      outline: 2px solid #FF5722 !important;
+    }
+    .link-checker-external {
+      outline: 2px dashed #2196F3 !important;
+    }
+    .link-checker-badge {
+      position: absolute;
+      padding: 2px 4px;
+      font-size: 10px;
+      color: white;
+      border-radius: 3px;
+      z-index: 10000;
+      transform: translateY(-100%);
+    }
+  `;
+  document.head.appendChild(style);
+  
+  // Подсвечиваем каждую ссылку
+  results.forEach(res => {
+    const badge = document.createElement('span');
+    badge.className = 'link-checker-badge';
+    badge.textContent = res.ok ? '✓' : `✗ ${res.error || res.status}`;
+    badge.style.background = res.ok ? '#4CAF50' : '#FF5722';
+    
+    res.element.classList.add('link-checker-highlight');
+    res.element.classList.add(res.ok ? 'link-checker-ok' : 'link-checker-error');
+    if (res.isExternal) res.element.classList.add('link-checker-external');
+    
+    res.element.appendChild(badge);
+  });
+}
+
+// Основная функция
+async function checkAllLinks() {
+  try {
+    console.clear();
+    console.log('%c=== Проверка ссылок начата ===', 'color: #4CAF50; font-weight: bold');
+    
+    // Находим все ссылки
+    const links = findLinks();
+    if (links.length === 0) return;
+    
+    // Собираем информацию о ссылках
+    const linksInfo = links.map(link => ({
+      element: link,
+      href: link.href,
+      text: link.textContent.trim() || '<без текста>',
+      isExternal: new URL(link.href).hostname !== window.location.hostname
+    }));
+    
+    // Проверяем каждую ссылку
+    const results = [];
+    for (let i = 0; i < linksInfo.length; i++) {
+      const link = linksInfo[i];
+      console.log(`Проверка [${i+1}/${linksInfo.length}]: ${link.href}`);
+      
+      // Пропускаем внешние ссылки, если отключено в конфиге
+      if (link.isExternal && !config.checkExternalLinks) {
+        results.push({
+          ...link,
+          status: 0,
+          ok: true,
+          error: 'Skipped (external)'
+        });
+        continue;
+      }
+      
+      const result = await checkLink(link.element);
+      results.push({
+        ...link,
+        ...result
+      });
+    }
+    
+    // Выводим результаты
+    showResults(results);
+    highlightLinks(results);
+    
+    console.log('%c=== Проверка завершена ===', 'color: #4CAF50; font-weight: bold');
+    return results;
+  } catch (error) {
+    console.error('%cОшибка при проверке ссылок:', 'color: #FF5722; font-weight: bold', error);
+    return null;
+  }
+}
+
+// Запускаем проверку
+checkAllLinks();
