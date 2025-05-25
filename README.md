@@ -15,6 +15,4 @@ npm test
 ```
 
 ## Структура
-
-- `automation/tests/form.spec.ts` — автотесты формы
-- `tsconfig.json`, `package.json` — конфигурация проекта
+form.spec.ts - код для Playwriht
